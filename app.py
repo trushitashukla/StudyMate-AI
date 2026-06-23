@@ -2,125 +2,166 @@ import streamlit as st
 from PyPDF2 import PdfReader
 
 st.title("📚 StudyMate AI")
-st.subheader("Your Personal AI Study Companion")
 
-name = st.text_input("Enter your name")
-
-if name:
-    st.success(f"Welcome, {name}!")
-
-subject = st.selectbox(
-    "Select a subject",
-    ["Python", "Database", "Web Development", "Operating System"]
+page = st.sidebar.selectbox(
+    "Choose Feature",
+    [
+        "Home",
+        "Study Planner",
+        "Notes Summarizer",
+        "Quiz Generator",
+        "AI Tutor",
+        "Progress Tracker"
+    ]
 )
 
-st.write("Selected Subject:", subject)
+# HOME
+if page == "Home":
+    st.header("Welcome to StudyMate AI")
+    st.write("Your Personal AI Study Companion")
 
-st.divider()
+# STUDY PLANNER
+elif page == "Study Planner":
 
-# ---------------- STUDY PLANNER ----------------
+    st.header("Smart Study Planner")
 
-st.header("Study Planner")
+    subject = st.text_input("Subject")
 
-hours = st.slider(
-    "How many hours can you study today?",
-    1,
-    12,
-    2
-)
+    days = st.number_input(
+        "Days Until Exam",
+        1,
+        365,
+        30
+    )
 
-if st.button("Generate Plan"):
+    hours = st.slider(
+        "Hours Per Day",
+        1,
+        12,
+        2
+    )
 
-    st.subheader("Today's Study Plan")
+    if st.button("Generate Plan"):
+        st.success(
+            f"Study {subject} for {hours} hours daily for {days} days."
+        )
 
-    st.write(f"📖 Study {subject} for {hours} hour(s)")
-    st.write("📝 Create short notes")
-    st.write("🎯 Solve practice questions")
-    st.write("🔄 Revise important topics")
+# NOTES SUMMARIZER
+elif page == "Notes Summarizer":
 
-    st.success("Study plan generated!")
+    st.header("Notes Summarizer")
 
-st.divider()
+    uploaded_file = st.file_uploader(
+        "Upload Notes",
+        type=["pdf", "txt"]
+    )
 
-# ---------------- NOTES UPLOAD ----------------
+    text = ""
 
-st.header("Upload Notes")
+    if uploaded_file:
 
-uploaded_file = st.file_uploader(
-    "Upload your notes",
-    type=["pdf", "txt"]
-)
+        st.success("File Uploaded Successfully")
 
-text = ""
+        if uploaded_file.type == "text/plain":
 
-if uploaded_file:
+            text = uploaded_file.read().decode("utf-8")
 
-    st.success("File uploaded successfully!")
-    st.write("File Name:", uploaded_file.name)
+        elif uploaded_file.type == "application/pdf":
 
-    if uploaded_file.type == "text/plain":
+            pdf = PdfReader(uploaded_file)
 
-        text = uploaded_file.read().decode("utf-8")
+            for pdf_page in pdf.pages:
+                extracted = pdf_page.extract_text()
 
-        st.subheader("Your Notes")
-        st.text_area("Content", text, height=200)
+                if extracted:
+                    text += extracted
 
-    elif uploaded_file.type == "application/pdf":
+        st.subheader("Notes Content")
 
-        pdf = PdfReader(uploaded_file)
+        st.text_area(
+            "Content",
+            text,
+            height=250
+        )
 
-        for page in pdf.pages:
-            page_text = page.extract_text()
+        if st.button("Generate Summary"):
 
-            if page_text:
-                text += page_text
+            sentences = text.split(".")
 
-        st.subheader("PDF Content")
-        st.text_area("Content", text, height=200)
+            st.subheader("Summary")
 
-# ---------------- SUMMARY ----------------
+            for sentence in sentences[:5]:
 
-if text:
+                if sentence.strip():
 
-    if st.button("Generate Summary"):
+                    st.write("•", sentence.strip())
+# QUIZ GENERATOR
+elif page == "Quiz Generator":
 
-        sentences = text.split(".")
+    st.header("Quiz Generator")
 
-        st.subheader("Summary")
-
-        for sentence in sentences[:5]:
-            if sentence.strip():
-                st.write("•", sentence.strip())
-
-    st.divider()
-
-    # ---------------- QUIZ ----------------
+    notes = st.text_area(
+        "Paste Notes Here",
+        height=200
+    )
 
     if st.button("Generate Quiz"):
 
-        st.subheader("Quiz")
-
-        lines = text.split(".")
+        sentences = notes.split(".")
 
         count = 1
 
-        for line in lines[:5]:
+        for sentence in sentences[:5]:
 
-            line = line.strip()
+            sentence = sentence.strip()
 
-            if len(line) > 10:
+            if len(sentence) > 10:
 
-                words = line.split()
+                st.write(
+                    f"Q{count}. Explain:"
+                )
 
-                if len(words) > 3:
+                st.write(sentence)
 
-                    question = " ".join(words[:-1])
+                st.text_input(
+                    f"Your Answer {count}"
+                )
 
-                    st.write(f"Q{count}. Complete the statement:")
+                count += 1
+# AI TUTOR
+elif page == "AI Tutor":
 
-                    st.write(question + " ______")
+    st.header("AI Tutor")
 
-                    with st.expander("Show Answer"):
-                        st.write(words[-1])
+    question = st.text_input(
+        "Ask a Question"
+    )
 
-                    count += 1
+    if question:
+        st.write("AI Answer will appear here.")
+
+# PROGRESS TRACKER
+elif page == "Progress Tracker":
+
+    st.header("📈 Progress Tracker")
+
+    st.metric(
+        "Quizzes Completed",
+        12
+    )
+
+    st.metric(
+        "Average Score",
+        "82%"
+    )
+
+    st.metric(
+        "Study Streak",
+        "5 Days"
+    )
+
+    st.progress(82)
+
+    st.success(
+        "Great job! Keep studying consistently."
+    )
