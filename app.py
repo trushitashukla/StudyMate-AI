@@ -1,3 +1,11 @@
+import google.generativeai as genai
+
+API_KEY = st.secrets["GEMINI_API_KEY"]
+
+genai.configure(api_key=API_KEY)
+
+model = genai.GenerativeModel("gemini-2.5-flash")
+
 import streamlit as st
 from PyPDF2 import PdfReader
 
@@ -131,14 +139,25 @@ elif page == "Quiz Generator":
 # AI TUTOR
 elif page == "AI Tutor":
 
-    st.header("AI Tutor")
+    st.header("🤖 AI Tutor")
 
     question = st.text_input(
-        "Ask a Question"
+        "Ask any study-related question"
     )
 
-    if question:
-        st.write("AI Answer will appear here.")
+    if st.button("Get Answer"):
+
+        if question:
+
+            with st.spinner("Thinking..."):
+
+                response = model.generate_content(
+                    f"Explain this in simple language for a student: {question}"
+                )
+
+                st.success("Answer Generated")
+
+                st.write(response.text)
 
 # PROGRESS TRACKER
 elif page == "Progress Tracker":
